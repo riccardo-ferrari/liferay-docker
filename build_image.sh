@@ -179,7 +179,7 @@ function prepare_temp_directory {
 
 	RELEASE_FILE_URL=${1}
 
-	if [[ ${RELEASE_FILE_URL} != http://mirrors.*.liferay.com* ]] && [[ ${RELEASE_FILE_URL} != http://release* ]]
+	if [[ ${RELEASE_FILE_URL} != http://mirrors.*.liferay.com* ]] && [[ ${RELEASE_FILE_URL} != https://* ]]
 	then
 		RELEASE_FILE_URL=http://mirrors.lax.liferay.com/${RELEASE_FILE_URL}
 	fi
@@ -200,7 +200,7 @@ function prepare_temp_directory {
 
 		mkdir -p ${release_dir}
 
-		curl -f -o ${release_dir}/${RELEASE_FILE_NAME} ${RELEASE_FILE_URL} || exit 2
+		curl ${CURL_OPTS} -f -o ${release_dir}/${RELEASE_FILE_NAME} ${RELEASE_FILE_URL} || exit 2
 	fi
 
 	if [[ ${RELEASE_FILE_NAME} == *.7z ]]
