@@ -9,7 +9,7 @@ function main {
 
 	if [ -d ${LIFERAY_MOUNT_DIR}/files ]
 	then
-		if [ $(ls -A ${LIFERAY_MOUNT_DIR}/files) ]
+		if [ "$(ls -A ${LIFERAY_MOUNT_DIR}/files)" ]
 		then
 			echo "[LIFERAY] Copying files from ${LIFERAY_MOUNT_DIR}/files:"
 			echo ""
@@ -30,7 +30,7 @@ function main {
 
 	if [ -d ${LIFERAY_MOUNT_DIR}/scripts ]
 	then
-		if [ $(ls -A ${LIFERAY_MOUNT_DIR}/scripts) ]
+		if [ "$(ls -A ${LIFERAY_MOUNT_DIR}/scripts)" ]
 		then
 			echo "[LIFERAY] Executing scripts in ${LIFERAY_MOUNT_DIR}/scripts:"
 
@@ -72,6 +72,38 @@ function main {
 	if [ -e ${LIFERAY_PATCHING_DIR} ]
 	then
 		patch_liferay.sh
+	fi
+
+	if [[ "${LIFERAY_EXPLODE_MODE}" == "true" ]] || [[ "${LIFERAY_EXPLODE_MODE}" == "test" ]]
+	then
+    if [ "${LIFERAY_EXPLODE_MODE}" == "test" ]
+        then
+    		echo ""
+            echo "[LIFERAY] Running in test mode"
+    		echo ""
+
+            cp -R /opt/liferay/tomcat* ${LIFERAY_MOUNT_DIR}
+        fi
+
+	    if [ -e ${LIFERAY_MOUNT_DIR}/osgi ]
+	    then
+	        local timestamp=$(date "+%s")
+
+    		echo ""
+	        echo "[LIFERAY] The directory /mnt/liferay/osgi exists. Moving to /mnt/liferay/osgi-${timestamp}"
+    		echo ""
+
+	        mv ${LIFERAY_MOUNT_DIR}/osgi ${LIFERAY_MOUNT_DIR}/osgi-${timestamp}
+	    fi
+
+        export LIFERAY_MODULE_PERIOD_FRAMEWORK_PERIOD_BASE_PERIOD_DIR=${LIFERAY_MOUNT_DIR}/osgi
+
+		mv /opt/liferay/osgi ${LIFERAY_MOUNT_DIR}/osgi
+
+        ln -s ${LIFERAY_MOUNT_DIR}/osgi /opt/liferay/
+
+        echo ""
+        echo "[LIFERAY] The directory /mnt/liferay/osgi is ready. Copy files to \$(pwd)/xyz123/osgi on the host operating system to deploy osgi modules to ${LIFERAY_PRODUCT_NAME} at runtime."
 	fi
 }
 
