@@ -44,7 +44,22 @@ function main {
 }
 
 function prepare_temp_directory {
-	cp -a ${1} ${TEMP_DIR}/liferay
+    FILE_NAME=${1##*/}
+
+    if [[ ${FILE_NAME} == *.7z ]]
+    then
+        7z x -O${TEMP_DIR} ${1} || exit 3
+
+        mv ${TEMP_DIR}/liferay-* ${TEMP_DIR}/liferay
+    elif [[ ${FILE_NAME} == *.zip ]]
+    then
+        unzip -q ${1} -d ${TEMP_DIR}  || exit 3
+
+        mv ${TEMP_DIR}/liferay-* ${TEMP_DIR}/liferay
+    else
+        cp -a ${1} ${TEMP_DIR}/liferay
+    fi
+
 }
 
 main ${@}
