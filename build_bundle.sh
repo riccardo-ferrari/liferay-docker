@@ -200,7 +200,7 @@ function main {
 
     local cwd=${PWD}
 
-    if [[ ! ${lpkgs} == "none" ]]
+    if [[ ! ${workspaces} == "none" ]]
     then
         for wrk in "${workspaces[@]}"
         do
@@ -229,15 +229,43 @@ function main {
                 git checkout ${branch}
             fi
 
-            cp gradle.properties gradle.properties-${timestamp}
+            repo_root=${wrk_path%%/*}
 
-            echo -e "\napp.server.parent.dir=${cwd}/${LIFERAY_HOME}" >> gradle.properties
+            if [[ -f ${WORKSPACE_DIR}/${repo_root}/app.server.properties ]]
+            then
+                echo "Inside portal repo"
 
-            echo "./gradlew ${GRADLE_OPTS_CUSTOM} ${GRADLE_TASKS}"
+                echo -e "\napp.server.parent.dir=${cwd}/${LIFERAY_HOME}" > "${WORKSPACE_DIR}/${repo_root}/app.server.$(whoami).properties"
 
-            eval "./gradlew ${GRADLE_OPTS_CUSTOM} ${GRADLE_TASKS}"
+                cd ${WORKSPACE_DIR}/${repo_root}
 
-            cp gradle.properties-${timestamp} gradle.properties
+                ant setup-sdk install-portal-snapshots
+
+                cd -
+            elif [[ -f "gradle.properties" ]]
+            then
+                echo "Inside sub-repo"
+
+                cp gradle.properties gradle.properties-${timestamp}
+
+                echo -e "\napp.server.parent.dir=${cwd}/${LIFERAY_HOME}" >> gradle.properties
+
+                echo "${GRADLE_CMD} ${GRADLE_OPTS_CUSTOM} ${GRADLE_TASKS}"
+            fi
+
+            eval "${GRADLE_CMD} ${GRADLE_OPTS_CUSTOM} ${GRADLE_TASKS}"
+
+            if [[ -f ${WORKSPACE_DIR}/${repo_root}/app.server.properties ]]
+            then
+                echo ""
+            elif [[ -f "gradle.properties" ]]
+            then
+                cp gradle.properties-${timestamp} gradle.properties
+            fi
+
+            local git_hash=$(git log -1 --pretty=format:%h)
+
+            echo ${git_hash} > "${LIFERAY_HOME}/${wrk_path}.hash"
 
             cd ${cwd}
 

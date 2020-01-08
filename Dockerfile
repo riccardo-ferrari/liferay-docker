@@ -8,11 +8,13 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
         nano \
         git \
         python \
+        ant \
     && apt-get clean && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
 
 ENV WORKSPACE_DIR=/opt/workspace
 ENV CACHE_DIR=/opt/cache
 ENV P7Z_OPTS='-md1024m'
+ENV GRADLE_CMD="./gradlew"
 ENV GRADLE_OPTS_CUSTOM="--parallel"
 ENV GRADLE_TASKS="deploy"
 
