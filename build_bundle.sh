@@ -27,9 +27,8 @@ function fix_tomcat_setenv {
 	fi
 }
 
-function install_fix_pack {
-	local fix_pack_url=${1}
-	local bundle_home=${2}
+function update_patching_tool {
+	local bundle_home=${1}
 
 	#
 	# See https://gist.github.com/ethanbustad/600d232539824db320d2977d453115a6.
@@ -64,6 +63,11 @@ function install_fix_pack {
 	${bundle_home}/patching-tool/patching-tool.sh revert
 
 	rm -fr ${bundle_home}/${bundle_home}/patching-tool/patches/*
+}
+
+function install_fix_pack {
+	local fix_pack_url=${1}
+	local bundle_home=${2}
 
 	echo ""
 	echo "Download fix pack."
@@ -98,7 +102,7 @@ function main {
 	local portal_bundle_name=${portal_bundle_url##*/}
     portal_bundle_name=${portal_bundle_name%.*}
 
-    local portal_fix_pack=${2}
+    local -n portal_fix_pack=${2}
 
     local -n lpkgs=${3}
 
@@ -137,7 +141,16 @@ function main {
 	then
 		if [[ ! ${portal_fix_pack} == "none" ]]
 		then
-			install_fix_pack ${portal_fix_pack} ${LIFERAY_HOME}
+		    update_patching_tool ${LIFERAY_HOME}
+
+		    for fix_pack_url in "${portal_fix_pack[@]}"
+		    do
+                echo ""
+                echo "Install Fix Pack: ${fix_pack_url}"
+                echo ""
+
+    			install_fix_pack ${fix_pack_url} ${LIFERAY_HOME}
+    		done
 		fi
 	fi
 
@@ -345,6 +358,7 @@ function start_tomcat {
 }
 
 function parse_args {
+    fix_packs=()
     lpkgs=()
     workspaces=()
 
@@ -358,7 +372,7 @@ function parse_args {
                 ;;
             --fix-pack)
                 echo "'fix-pack' is ${2}"
-                export LIFERAY_PORTAL_FIX_PACK=${2}
+                fix_packs+=(${2})
                 shift 2
                 ;;
             --lpkg)
@@ -382,6 +396,7 @@ function parse_args {
         esac
     done
 
+    export LIFERAY_PORTAL_FIX_PACK=(${fix_packs[@]})
     export LIFERAY_LPKG=(${lpkgs[@]})
     export LIFERAY_WORKSPACE=(${workspaces[@]})
 }
@@ -463,4 +478,4 @@ check_utils 7z curl java unzip git
 
 parse_args ${@}
 
-main ${LIFERAY_PORTAL} ${LIFERAY_PORTAL_FIX_PACK:-none} ${LIFERAY_LPKG[@]:-none} ${LIFERAY_WORKSPACE[@]:-none}
+main ${LIFERAY_PORTAL} LIFERAY_PORTAL_FIX_PACK LIFERAY_LPKG LIFERAY_WORKSPACE
