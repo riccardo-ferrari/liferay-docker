@@ -263,8 +263,9 @@ function main {
 
                 echo -e "\napp.server.parent.dir=${cwd}/${LIFERAY_HOME}" >> gradle.properties
 
-                echo "${GRADLE_CMD} ${GRADLE_OPTS_CUSTOM} ${GRADLE_TASKS}"
             fi
+
+            echo "${GRADLE_CMD} ${GRADLE_OPTS_CUSTOM} ${GRADLE_TASKS}"
 
             eval "${GRADLE_CMD} ${GRADLE_OPTS_CUSTOM} ${GRADLE_TASKS}"
 
@@ -465,6 +466,8 @@ function drop_privilege() {
         export HOME=/home/liferay
 
         exec su - liferay -p "$0" -- " $@"
+
+        export HOME=/home/liferay
 
         echo "done"
 
